@@ -1,0 +1,286 @@
+/* General Styles */
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f0f0f0;
+}
+
+#calendar-container {
+  max-width: 1200px;
+  margin: 20px auto;
+  background-color: white;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+#calendar-header {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+#hijri-month-name {
+  font-size: 2em;
+  color: #333;
+}
+
+#gregorian-month-name {
+  font-size: 1.2em;
+  color: #777;
+}
+
+/* Calendar Layout */
+.calendar-row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.weekday,
+.day {
+  width: calc(100% / 7); /* 7 days per week */
+  text-align: center;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.weekday {
+  font-weight: bold;
+  background-color: #8c8a5d;
+  color: #fff;
+}
+
+/* Calendar Day Cell (Desktop) */
+.day {
+  position: relative;
+  display: inline-block;
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+  width: calc(100% / 7 - 10px); /* Reduce width to add gap */
+  box-sizing: border-box;
+  margin: 5px; /* Gap between cells */
+  background-color: #fefefe;
+  transition: background-color 0.3s ease;
+  border-radius: 8px; /* Rounded corners */
+}
+
+.day:hover {
+  background-color: #f6f6f6;
+}
+
+.hijri-date {
+  font-weight: bold;
+  font-size: 1.4em; /* Larger font for Hijri in desktop */
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.gregorian-date {
+  color: gray;
+  font-size: 0.9em; /* Smaller font for Gregorian */
+  background-color: #f8f3e2;
+  border-radius: 10%;
+}
+
+/* Display Gregorian month abbreviation */
+.gregorian-month {
+    display: block;
+  font-size: 0.8em;
+}
+
+/* Tooltip */
+.tooltip {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 180px;
+  background-color: #f9f9f9;
+  color: #333;
+  text-align: left;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+/* Show tooltip on hover */
+.day:hover .tooltip {
+  display: block;
+}
+
+/* Button Flex Container */
+.button-container {
+  display: flex;
+  justify-content: space-between; /* Align Previous/Next to left, Download to right */
+  align-items: center;
+  width: 100%;
+  margin-top: 20px;
+}
+
+/* Previous Button */
+.previous-btn {
+  padding: 10px 20px;
+  background: linear-gradient(
+    45deg,
+    #ff6f61,
+    #ff8a65
+  ); /* Linear gradient for Previous button */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease-in-out;
+  max-width: 150px; /* Prevent full-width buttons */
+}
+
+.previous-btn:hover {
+  background: linear-gradient(
+    45deg,
+    #e64a19,
+    #f4511e
+  ); /* Darker gradient on hover */
+  box-shadow: 0 0 15px rgba(255, 88, 72, 0.7); /* Glow effect on hover */
+}
+
+/* Next Button */
+.next-btn {
+  padding: 10px 20px;
+  background: linear-gradient(
+    45deg,
+    #ff6f61,
+    #ff8a65
+  ); /* Same style for Next button */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease-in-out;
+  max-width: 150px; /* Prevent full-width buttons */
+  display: none; /* Initially hidden */
+}
+
+.next-btn:hover {
+  background: linear-gradient(
+    45deg,
+    #e64a19,
+    #f4511e
+  ); /* Darker gradient on hover */
+  box-shadow: 0 0 15px rgba(255, 88, 72, 0.7); /* Glow effect on hover */
+}
+
+/* Download Button */
+.download-btn {
+  width: fit-content;
+  padding: 10px 20px;
+  background: linear-gradient(
+    45deg,
+    #4caf50,
+    #81c784
+  ); /* Linear gradient background */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  text-align: center;
+  transition: all 0.3s ease-in-out;
+  max-width: 150px; /* Prevent full-width buttons */
+}
+
+.download-btn:hover {
+  background: linear-gradient(
+    45deg,
+    #45a049,
+    #66bb6a
+  ); /* Darker gradient on hover */
+  box-shadow: 0 0 15px rgba(72, 255, 88, 0.7); /* Glow effect on hover */
+}
+
+#arabic-weekday span {
+    font-size: 0.8em;
+    color: #ffffff;
+}
+
+#today {
+  border: 3px solid #e0b700;
+  border-radius: 12px;
+}
+
+
+/* Mobile View */
+@media (max-width: 767px) {
+  #calendar-container {
+    padding: 10px;
+    width: 100%;
+  }
+  #calendar-header h1 {
+    font-size: 1.5em;
+  }
+
+  #calendar-header h2 {
+    font-size: 1em;
+  }
+
+  .day,
+  .weekday {
+    font-size: 0.8em;
+  }
+
+  .day {
+    padding: 5px;
+    margin: 0;
+    width: calc(100% / 7);
+    white-space: nowrap; /* No gap on mobile */
+    border-radius: 0; /* No rounded corners on mobile */
+  }
+
+  .weekday {
+    padding: 5px;
+    white-space: nowrap;
+  }
+
+  /* Hide Gregorian month abbreviation in mobile view */
+  .gregorian-month {
+    display: none;
+  }
+
+  /* Adjust buttons for mobile: next/previous in one row, download in another */
+  .button-container {
+    flex-direction: column; /* Stack buttons vertically */
+    justify-content: space-between; /* Space them evenly */
+  }
+
+  .button-container .previous-btn,
+  .button-container .next-btn {
+    width: 49%; /* Make them half-width each */
+    margin-bottom: 10px; /* Space between previous/next buttons */
+  }
+
+  .button-container .download-btn {
+    width: 100%; /* Make download button full width */
+  }
+
+  .day:hover .tooltip {
+    display: none;
+  }
+
+  #arabic-weekday{
+    display: none;
+  }
+}

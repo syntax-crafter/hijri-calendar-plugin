@@ -1,0 +1,13 @@
+{
+    "name": "acju/calender-plugin",
+    "description": "generate-a-pdf-for-calender",
+    "type": "project-plugin",
+    "require": {
+        "tecnickcom/tcpdf": "^6.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "Acju\\CalenderPlugin\\": "src/"
+        }
+    }
+}
