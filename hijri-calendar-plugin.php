@@ -16,6 +16,33 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
 // Create an admin settings page
 require_once plugin_dir_path(__FILE__) . 'admin-settings-page.php';
 
+// Function to create the database table
+function hijri_calendar_create_table() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'hijri_start_dates'; // Use your desired table name
+    $charset_collate = $wpdb->get_charset_collate();
+
+    $sql = "CREATE TABLE IF NOT EXISTS $table_name (
+        id bigint(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        gregorian_month_year varchar(7) NOT NULL,
+        start_date date NOT NULL,
+        image_path varchar(255) DEFAULT NULL
+    ) $charset_collate;";
+
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    dbDelta($sql);
+
+    // Log any errors
+    if ($wpdb->last_error) {
+        error_log('Table creation error: ' . $wpdb->last_error);
+    } else {
+        error_log('Table creation successful.');
+    }
+}
+
+// Register activation hook to create the database table
+register_activation_hook(__FILE__, 'hijri_calendar_create_table');
+
 // Register shortcode to display the calendar with navigation buttons
 function hijri_calendar_shortcode() {
     // Get the start date from the plugin options
@@ -56,4 +83,3 @@ function hijri_calendar_shortcode() {
     </div>';
 }
 add_shortcode('hijri_calendar', 'hijri_calendar_shortcode');
-
