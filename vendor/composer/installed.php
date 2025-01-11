@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'acju/calender-plugin',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => null,
+        'pretty_version' => 'dev-master',
+        'version' => 'dev-master',
+        'reference' => '35e777a08896859fb40aa8caa0ce3e27227dcfa5',
         'type' => 'project-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'acju/calender-plugin' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => null,
+            'pretty_version' => 'dev-master',
+            'version' => 'dev-master',
+            'reference' => '35e777a08896859fb40aa8caa0ce3e27227dcfa5',
             'type' => 'project-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

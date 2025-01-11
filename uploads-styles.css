@@ -1,0 +1,146 @@
+/* General Styles for Media Tiles */
+#upload_section_media_tiles_container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between;
+    margin: 20px 0;
+}
+
+.upload_section_media_tile {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    width: calc(50% - 10px); /* Two tiles per row */
+    box-sizing: border-box;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+.upload_section_media_tile:hover {
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2); /* Shadow on hover */
+}
+
+.upload_section_tile_left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
+    max-width: 70%; /* Limit left side to 70% */
+}
+
+.upload_section_tile_right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    text-align: right;
+    max-width: 30%; /* Limit right side to 30% */
+}
+
+.upload_section_media_title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.upload_section_media_description {
+    font-size: 14px;
+    color: #555;
+}
+
+/* Buttons */
+.upload_section_view_btn,
+.upload_section_download_btn {
+    display: inline-block;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #fff;
+    background-color: #0073aa;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none; /* Remove text underline */
+    cursor: pointer;
+    margin-bottom: 5px;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.upload_section_view_btn:hover,
+.upload_section_download_btn:hover {
+    background-color: #005177;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Add shadow on hover */
+}
+
+.upload_section_download_btn {
+    background-color: #28a745;
+}
+
+.upload_section_download_btn:hover {
+    background-color: #1d7a33;
+}
+
+/* Popup Modal */
+#upload_section_image_popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: none; /* Hidden by default */
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.upload_section_popup_content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.upload_section_popup_image {
+    max-width: 100%;
+    max-height: 70vh; /* Maintain aspect ratio and fit within 70% viewport height */
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+#upload_section_close_popup {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    color: #fff;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10000;
+    transition: background-color 0.3s ease;
+}
+
+#upload_section_close_popup:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .upload_section_media_tile {
+        width: 100%; /* One tile per row on smaller screens */
+    }
+}

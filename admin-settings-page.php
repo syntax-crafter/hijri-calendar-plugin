@@ -1,174 +1,167 @@
 <?php
-// Add settings page to the admin menu
-function hijri_calendar_add_admin_menu() {
-    add_menu_page('Hijri Calendar Settings', 'Hijri Calendar', 'manage_options', 'hijri-calendar', 'hijri_calendar_options_page');
+// Exit if accessed directly
+if (!defined('ABSPATH')) {
+    exit;
 }
-add_action('admin_menu', 'hijri_calendar_add_admin_menu');
 
-// Register the plugin settings
-function hijri_calendar_settings_init() {
-    register_setting('hijriCalendarSettings', 'hijri_calendar_start_date');
+// Enqueue the media uploader script
+function hijri_calendar_enqueue_media_uploader($hook)
+{
+    wp_enqueue_media();
+    if ($hook !== 'toplevel_page_hijri-calendar') {
+        return;
+    }
+    wp_enqueue_script('hijri-calendar-admin-js', plugin_dir_url(__FILE__) . 'hijri-calendar-admin-js.js', array('jquery'), null, true);
+}
+add_action('admin_enqueue_scripts', 'hijri_calendar_enqueue_media_uploader');
 
-    add_settings_section(
-        'hijri_calendar_settings_section',
-        __('Hijri Calendar Settings', 'hijri_calendar'),
-        null,
-        'hijriCalendarSettings'
-    );
-
-    add_settings_field(
-        'hijri_calendar_start_date_field',
-        __('Start Date of Hijri Month (Gregorian)', 'hijri_calendar'),
-        'hijri_calendar_start_date_render',
-        'hijriCalendarSettings',
-        'hijri_calendar_settings_section'
-    );
-
-    add_settings_field(
-        'hijri_calendar_image_field',
-        __('Upload Image for the Month', 'hijri_calendar'),
-        'hijri_calendar_image_render',
-        'hijriCalendarSettings',
-        'hijri_calendar_settings_section'
+// Create Admin Menu for Hijri Calendar
+function hijri_calendar_admin_menu()
+{
+    add_menu_page(
+        'Hijri Calendar',            // Page title
+        'Hijri Calendar',            // Menu title
+        'manage_options',            // Capability required to view
+        'hijri-calendar',            // Slug for the menu page
+        'hijri_calendar_admin_page', // Callback function to render the page
+        'dashicons-calendar',        // Icon for the menu
+        20                           // Position in the menu
     );
 }
-add_action('admin_init', 'hijri_calendar_settings_init');
+add_action('admin_menu', 'hijri_calendar_admin_menu');
 
-// Render the input field for the start date
-function hijri_calendar_start_date_render() {
-    $start_date = get_option('hijri_calendar_start_date', '2024-08-07');
-    ?>
-    <input type="date" name="hijri_calendar_start_date" value="<?php echo esc_attr($start_date); ?>">
-    <?php
-}
-
-// Render the file upload field
-function hijri_calendar_image_render() {
-    ?>
-    <input type="file" name="hijri_calendar_image" accept="image/*">
-    <?php
-}
-
-// Render the options page
-function hijri_calendar_options_page() {
-    ?>
-    <form action="options.php" method="post" enctype="multipart/form-data">
-        <h1>Hijri Calendar Settings</h1>
-        <?php
-        settings_fields('hijriCalendarSettings');
-        do_settings_sections('hijriCalendarSettings');
-        submit_button(__('Save Settings', 'hijri_calendar'));
-        ?>
-    </form>
-    <?php
-}
-
-// // Database Table Creation (if not exists) for Hijri Start Dates
-// function hijri_calendar_create_table() {
-//     global $wpdb;
-//     $table_name = $wpdb->prefix . 'hijri_start_dates';
-//     $charset_collate = $wpdb->get_charset_collate();
-
-//     $sql = "CREATE TABLE IF NOT EXISTS $table_name (
-//         id bigint(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-//         gregorian_month_year varchar(7) NOT NULL,
-//         start_date date NOT NULL,
-//         image_path varchar(255) DEFAULT NULL
-//     ) $charset_collate;";
-
-//     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-//     dbDelta($sql);
-
-//     // Log any errors
-//     if ($wpdb->last_error) {
-//         error_log('Table creation error: ' . $wpdb->last_error);
-//     } else {
-//         error_log('Table creation successful.');
-//     }
-// }
-
-// register_activation_hook(__FILE__, 'hijri_calendar_create_table');
-
-// Validate and Save Hijri Start Date and Image Path to the Database
-function hijri_calendar_validate_and_save_start_date($start_date) {
+// Display the Admin Page for Hijri Calendar
+function hijri_calendar_admin_page()
+{
     global $wpdb;
     $table_name = $wpdb->prefix . 'hijri_start_dates';
 
-    // Extract the Gregorian month and year from the start date
-    $month_year = date('Y-m', strtotime($start_date));
+    // Handle form submission for adding Hijri start date
+    if (isset($_POST['save_hijri_calendar'])) {
+        // Get form data
+        $start_date = sanitize_text_field($_POST['start_date']);
+        $description = sanitize_textarea_field($_POST['description']);
+        $media_id = isset($_POST['media_id']) ? intval($_POST['media_id']) : 0;
 
-    // Check if an entry already exists for this month and year
-    $existing_record = $wpdb->get_var($wpdb->prepare(
-        "SELECT id FROM $table_name WHERE gregorian_month_year = %s", 
-        $month_year
-    ));
+        // Get the month and year from the start_date
+        $start_month_year = date('Y-m', strtotime($start_date)); // 'Y-m' to store Year-Month format
 
-    // Handle file upload
-    if (isset($_FILES['hijri_calendar_image']) && $_FILES['hijri_calendar_image']['error'] == UPLOAD_ERR_OK) {
-        $upload_dir = wp_upload_dir();
-        $target_dir = $upload_dir['path'] . '/';
-        $file_name = basename($_FILES['hijri_calendar_image']['name']);
-        $target_file = $target_dir . $file_name;
+        // Check if there is already an entry for the same month
+        $existing_entry = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(*) FROM $table_name WHERE DATE_FORMAT(start_date, '%Y-%m') = %s",
+                $start_month_year
+            )
+        );
 
-        // Move the uploaded file to the target directory
-        if (move_uploaded_file($_FILES['hijri_calendar _image']['tmp_name'], $target_file)) {
-            // If an entry exists, update it; otherwise, insert a new one
-            if ($existing_record) {
-                $wpdb->update(
-                    $table_name,
-                    array(
-                        'start_date' => $start_date, // Update the start date
-                        'image_path' => $target_file   // Update the image path
-                    ),
-                    array('id' => $existing_record), // Condition: matching ID
-                    array('%s', '%s'),                // Data types: date and string
-                    array('%d')                       // ID data type
-                );
-            } else {
-                $wpdb->insert(
-                    $table_name,
-                    array(
-                        'gregorian_month_year' => $month_year, // Month-Year (e.g., 2024-08)
-                        'start_date' => $start_date,           // Start date (Hijri)
-                        'image_path' => $target_file            // Image path
-                    ),
-                    array('%s', '%s', '%s') // Data types: string (for month-year), date, and string (for image path)
-                );
-            }
+        if ($existing_entry > 0) {
+            // Show a message if the entry for the month already exists
+            echo '<div class="error"><p>An entry already exists for the month ' . esc_html($start_month_year) . '.</p></div>';
         } else {
-            // Handle file upload error
-            error_log('File upload error: ' . $_FILES['hijri_calendar_image']['error']);
+            // Get the media URL
+            $media_url = $media_id ? wp_get_attachment_url($media_id) : '';
+
+            // Insert the Hijri start date
+            $wpdb->insert(
+                $table_name,
+                [
+                    'gregorian_month_year' => $start_month_year,
+                    'start_date' => $start_date,
+                    'description' => $description,
+                    'custom_url' => $media_url
+                ]
+            );
+
+            // Get the latest start_date from the database after the insert
+            $latest_start_date = $wpdb->get_var(
+                "SELECT start_date FROM $table_name ORDER BY start_date DESC LIMIT 1"
+            );
+
+            // Set the latest start date as the option value
+            update_option('hijri_calendar_start_date', $latest_start_date);
+
+            echo '<div class="updated"><p>Hijri Calendar entry saved successfully!</p></div>';
         }
     }
-}
 
-// Hook to save the start date and image path after form submission with validation
-function hijri_calendar_after_submission() {
-    if (isset($_POST['hijri_calendar_start_date'])) {
-        $start_date = sanitize_text_field($_POST['hijri_calendar_start_date']);
+    // Handle deletion of Hijri calendar entry
+    if (isset($_GET['delete_hijri_calendar_entry'])) {
+        $delete_id = absint($_GET['delete_hijri_calendar_entry']);
+        // Delete the entry from the database
+        $wpdb->delete($table_name, ['id' => $delete_id]);
+        // Get the latest start_date from the database after the insert
+        $latest_start_date = $wpdb->get_var(
+            "SELECT start_date FROM $table_name ORDER BY start_date DESC LIMIT 1"
+        );
 
-        // Validate the date (ensure it's a valid Gregorian date)
-        if (strtotime($start_date)) {
-            // Call the validation method to replace or insert the start date and image path
-            hijri_calendar_validate_and_save_start_date($start_date);
-        } else {
-            // Handle invalid date (if necessary)
-            echo "Invalid date format.";
-        }
+        // Set the latest start date as the option value
+        update_option('hijri_calendar_start_date', $latest_start_date);
+        echo '<div class="updated"><p>Hijri Calendar entry deleted successfully!</p></div>';
     }
-}
-add_action('update_option_hijri_calendar_start_date', 'hijri_calendar_after_submission', 10, 2);
 
-// Add a function to fetch the saved Hijri start date and image path for a given month
-function get_hijri_start_date_and_image($month_year) {
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'hijri_start_dates';
-    
-    $result = $wpdb->get_row($wpdb->prepare(
-        "SELECT start_date, image_path FROM $table_name WHERE gregorian_month_year = %s", 
-        $month_year
-    ));
+    // Fetch existing Hijri calendar entries, order by start date descending
+    $entries = $wpdb->get_results(
+        "SELECT * FROM $table_name ORDER BY start_date DESC"
+    );
 
-    return $result ? $result : null; // Return the date and image path if found, or null if not
-}
 ?>
+    <div class="wrap">
+        <h1 class="wp-heading-inline">Hijri Calendar Settings</h1>
+
+        <h2>Add New Hijri Start Date</h2>
+        <form method="post" enctype="multipart/form-data">
+            <table class="form-table">
+                <tr>
+                    <th><label for="start_date">Start Date (Gregorian)</label></th>
+                    <td><input type="date" name="start_date" id="start_date" class="regular-text" required></td>
+                </tr>
+                <tr>
+                    <th><label for="description">Description</label></th>
+                    <td><textarea name="description" id="description" class="regular-text" required></textarea></td>
+                </tr>
+                <tr>
+                    <th><label for="media_name">Select Media (Image)</label></th>
+                    <td>
+                        <input type="text" name="media_name" id="media_name" class="regular-text" readonly>
+                        <input type="hidden" name="media_id" id="media_id" class="regular-text" readonly>
+                        <button type="button" class="button" id="select-media-button">Select Media</button>
+                    </td>
+                </tr>
+            </table>
+            <p class="submit">
+                <input type="submit" name="save_hijri_calendar" class="button-primary" value="Save Settings">
+            </p>
+        </form>
+
+        <h2>Current Hijri Calendar Entries</h2>
+        <table class="widefat">
+            <thead>
+                <tr>
+                    <th>Start Date</th>
+                    <th>Description</th>
+                    <th>Image</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($entries as $entry): ?>
+                    <tr>
+                        <td><?php echo esc_html($entry->start_date); ?></td>
+                        <td><?php echo esc_html($entry->description); ?></td>
+                        <td>
+                            <?php if ($entry->custom_url): ?>
+                                <img src="<?php echo esc_url($entry->custom_url); ?>" width="100" alt="Image">
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <a href="<?php echo esc_url(admin_url('admin.php?page=hijri-calendar&delete_hijri_calendar_entry=' . $entry->id)); ?>"
+                                onclick="return confirm('Are you sure you want to delete this entry?');"
+                                class="dashicons dashicons-trash" style="color: red; font-size: 20px; text-decoration: none;"></a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+<?php
+}
