@@ -20,7 +20,8 @@ require_once plugin_dir_path(__FILE__) . 'admin-settings-page.php';
 register_activation_hook(__FILE__, 'hijri_calendar_create_table');
 
 // Function to create the Hijri Calendar table if it doesn't already exist
-function hijri_calendar_create_table() {
+function hijri_calendar_create_table()
+{
     global $wpdb;
 
     // Define the table name with WordPress prefix
@@ -45,7 +46,8 @@ function hijri_calendar_create_table() {
 }
 
 // Register shortcode to display the calendar with navigation buttons
-function hijri_calendar_shortcode() {
+function hijri_calendar_shortcode()
+{
     // Fetch the start date from the plugin options
     $start_date = get_option('hijri_calendar_start_date', '2024-08-07'); // Default to a specific date if not set
 
@@ -85,54 +87,154 @@ function hijri_calendar_shortcode() {
 }
 add_shortcode('hijri_calendar', 'hijri_calendar_shortcode');
 
-function hijri_calendar_uploads_shortcode() {
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'hijri_start_dates';
+// ----------------------------------------------------------
+// SHORTCODE: Display uploaded media with Pagination
+// ----------------------------------------------------------
+function hijri_calendar_uploads_shortcode()
+{
+    // This will output a container for the media tiles
+    // and a container for pagination controls.
+    // The media tiles will be loaded via AJAX.
 
-    // Fetch uploaded media from the database
-    $results = $wpdb->get_results("SELECT * FROM $table_name WHERE custom_url IS NOT NULL ORDER BY start_date DESC");
+    // Basic container markup for tiles + pagination
+    $html = '
+    <div id="upload_section_media_tiles_container"></div> <!-- Filled by AJAX -->
 
-    // Generate HTML for media tiles
-    $media_tiles = '';
-    foreach ($results as $row) {
-        $media_tiles .= "
-        <div class='upload_section_media_tile'>
-            <div class='upload_section_tile_left'>
-                <button class='upload_section_view_btn' data-url='{$row->custom_url}'>View</button>
-                <a class='upload_section_download_btn' href='{$row->custom_url}' download='{$row->file_name}'>Download</a>
-            </div>
-            <div class='upload_section_tile_right'>
-                <h3 class='upload_section_media_title'>{$row->gregorian_month_year}</h3>
-                <p class='upload_section_media_description'>{$row->description}</p>
-            </div>
-        </div>";
-    }
-
-    // Return the media tiles with inline popup structure
-    return "
-    <div id='upload_section_media_tiles_container'>
-        $media_tiles
+    <!-- Pagination Controls -->
+    <div id="pagination-controls" class="pagination-controls">
+        <!-- Filled by AJAX: e.g., [Prev] 1 2 3 [Next] -->
     </div>
-    <div id='upload_section_image_popup' class='upload_section_image_popup_overlay' style='display: none;'>
-        <div class='upload_section_popup_content'>
-            <span id='upload_section_close_popup' class='upload_section_close_popup'>&times;</span>
-            <img id='upload_section_popup_image' src='' alt='Image' class='upload_section_popup_image'/>
+
+    <!-- Popup for viewing images -->
+    <div id="upload_section_image_popup" class="upload_section_image_popup_overlay" style="display: none;">
+        <div class="upload_section_popup_content">
+            <span id="upload_section_close_popup" class="upload_section_close_popup">&times;</span>
+            <img id="upload_section_popup_image" src="" alt="Image" class="upload_section_popup_image"/>
         </div>
-    </div>";
+    </div>
+    ';
+
+    return $html;
 }
 add_shortcode('hijri_calendar_uploads', 'hijri_calendar_uploads_shortcode');
 
+// ----------------------------------------------------------
+// AJAX HANDLER: Fetch paginated media
+// ----------------------------------------------------------
+function hijri_calendar_ajax_get_uploads_paged()
+{
+    // Security check: optional, but recommended if you use a nonce
+    // check_ajax_referer('hijri_uploads_nonce', 'security');
 
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'hijri_start_dates';
+
+    // Determine which page is requested
+    $page = isset($_POST['page']) ? absint($_POST['page']) : 1;
+    // Set how many items per page
+    $items_per_page = 5;
+    // Calculate offset
+    $offset = ($page - 1) * $items_per_page;
+
+    // Fetch total number of rows that have custom_url
+    $total_items = $wpdb->get_var("
+        SELECT COUNT(*) 
+        FROM $table_name 
+        WHERE custom_url IS NOT NULL
+    ");
+
+    // Calculate total pages
+    $total_pages = ceil($total_items / $items_per_page);
+
+    // Fetch the actual records for this page
+    $results = $wpdb->get_results($wpdb->prepare("
+        SELECT * 
+        FROM $table_name 
+        WHERE custom_url IS NOT NULL 
+        ORDER BY start_date DESC
+        LIMIT %d OFFSET %d
+    ", $items_per_page, $offset));
+
+    // Build the HTML for the media tiles
+    $media_tiles = '';
+    if (!empty($results)) {
+        foreach ($results as $row) {
+            $media_tiles .= "
+            <div class='upload_section_media_tile'>
+                <div class='upload_section_tile_left'>
+                    <h3 class='upload_section_media_title'>{$row->gregorian_month_year}</h3>
+                    <p class='upload_section_media_description'>{$row->description}</p>
+                </div>
+                <div class='upload_section_tile_right'>
+                    <button class='upload_section_view_btn' data-url='{$row->custom_url}'>View</button>
+                    <a class='upload_section_download_btn' href='{$row->custom_url}' download='{$row->file_name}'>Download</a>
+                </div>
+            </div>";
+        }
+    } else {
+        $media_tiles = '<p>No media found.</p>';
+    }
+
+    // Build pagination controls HTML
+    // For simplicity, let's just do "Prev" / "Next" plus page numbers.
+    $pagination_html = '';
+    if ($total_pages > 1) {
+        // Prev button
+        if ($page > 1) {
+            $pagination_html .= '<button class="page-button" data-page="' . ($page - 1) . '">Prev</button>';
+        }
+
+        // Page numbers
+        for ($i = 1; $i <= $total_pages; $i++) {
+            $active_class = ($i === $page) ? 'active-page' : '';
+            $pagination_html .= '<button class="page-button ' . $active_class . '" data-page="' . $i . '">' . $i . '</button>';
+        }
+
+        // Next button
+        if ($page < $total_pages) {
+            $pagination_html .= '<button class="page-button" data-page="' . ($page + 1) . '">Next</button>';
+        }
+    }
+
+    // Return JSON response
+    wp_send_json_success([
+        'html'         => $media_tiles,
+        'pagination'   => $pagination_html,
+        'currentPage'  => $page,
+        'totalPages'   => $total_pages,
+    ]);
+}
+add_action('wp_ajax_hijri_calendar_get_uploads_paged', 'hijri_calendar_ajax_get_uploads_paged');
+add_action('wp_ajax_nopriv_hijri_calendar_get_uploads_paged', 'hijri_calendar_ajax_get_uploads_paged');
+
+
+// ----------------------------------------------------------
+// ENQUEUE STYLES & SCRIPTS
+// ----------------------------------------------------------
 
 // Enqueue styles for uploads
-function hijri_calendar_enqueue_uploads_styles() {
+function hijri_calendar_enqueue_uploads_styles()
+{
     wp_enqueue_style('uploads-styles', plugins_url('uploads-styles.css', __FILE__));
 }
 add_action('wp_enqueue_scripts', 'hijri_calendar_enqueue_uploads_styles');
 
-// Enqueue external JavaScript file for the popup modal
-function hijri_calendar_enqueue_popup_modal_script() {
-    // Assuming the JS file is in your plugin's 'js' folder (adjust path as necessary)
+// Enqueue external JavaScript file for the popup modal (unchanged)
+function hijri_calendar_enqueue_popup_modal_script()
+{
     wp_enqueue_script('popup-modal', plugins_url('popup-modal.js', __FILE__), array(), null, true);
 }
 add_action('wp_enqueue_scripts', 'hijri_calendar_enqueue_popup_modal_script');
+
+// Enqueue new JS file for handling pagination
+function hijri_calendar_enqueue_uploads_pagination_script()
+{
+    wp_enqueue_script('uploads-pagination', plugins_url('uploads-pagination.js', __FILE__), array('jquery'), null, true);
+
+    // Localize script to pass the AJAX URL
+    wp_localize_script('uploads-pagination', 'hijriCalendarUploadsData', array(
+        'ajaxUrl' => admin_url('admin-ajax.php'),
+        // Optional: 'security' => wp_create_nonce('hijri_uploads_nonce'),
+    ));
+}
+add_action('wp_enqueue_scripts', 'hijri_calendar_enqueue_uploads_pagination_script');
