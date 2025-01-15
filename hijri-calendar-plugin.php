@@ -90,7 +90,7 @@ function hijri_calendar_uploads_shortcode() {
     $table_name = $wpdb->prefix . 'hijri_start_dates';
 
     // Fetch uploaded media from the database
-    $results = $wpdb->get_results("SELECT * FROM $table_name WHERE custom_url IS NOT NULL ORDER BY upload_date DESC");
+    $results = $wpdb->get_results("SELECT * FROM $table_name WHERE custom_url IS NOT NULL ORDER BY start_date DESC");
 
     // Generate HTML for media tiles
     $media_tiles = '';
