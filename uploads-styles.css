@@ -1,291 +1,294 @@
 /*****************************************************
  * Two-Column Grid for Media Tiles
  *****************************************************/
- #upload_section_media_tiles_container {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* 2 columns */
-    gap: 1rem;                     /* spacing between tiles */
-    margin: 1.5rem 0;
-    padding: 0 1rem;
-  }
-  
-  /* Each media tile */
-  .upload_section_media_tile {
-    display: flex;
-    flex-direction: row; /* left content + right buttons */
-    background-color: #ffffff;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
-  }
-  
-  /* Hover effect on tile: a bit more shadow & slight lift */
-  .upload_section_media_tile:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    transform: translateY(-2px);
-  }
-  
-  /*****************************************************
+#upload_section_media_tiles_container {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2 columns */
+  gap: 1rem; /* spacing between tiles */
+  margin: 1.5rem 0;
+  padding: 0 1rem;
+}
+
+/* Each media tile */
+.upload_section_media_tile {
+  display: flex;
+  flex-direction: row; /* left content + right buttons */
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+/* Hover effect on tile: a bit more shadow & slight lift */
+.upload_section_media_tile:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/*****************************************************
    * Left Side: Title & Description
    *****************************************************/
-  .upload_section_tile_left {
-    flex: 1; /* Takes up remaining space on the left */
-    padding: 1rem;
-  }
-  
-  .upload_section_media_title {
-    margin: 0 0 0.5rem;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #333333;
-  }
-  
-  .upload_section_media_description {
-    margin: 0;
-    font-size: 0.95rem;
-    line-height: 1.5;
-    color: #555555;
-  }
-  
-  /*****************************************************
+.upload_section_tile_left {
+  flex: 1; /* Takes up remaining space on the left */
+  padding: 1rem;
+}
+
+.upload_section_media_title {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333333;
+}
+
+.upload_section_media_description {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #555555;
+}
+
+/*****************************************************
    * Right Side: Buttons (View & Download)
    *****************************************************/
-  .upload_section_tile_right {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-end; /* align buttons to the right */
-    padding: 1rem;
-    background-color: #fafafa;
-    border-left: 1px solid #eee;
-    min-width: 140px; /* Adjust as needed for comfortable button sizing */
-  }
-  
-  /* Remove underline from anchor tags on the right side */
-  .upload_section_tile_right a {
-    text-decoration: none !important;
-  }
-  
-  /* 
+.upload_section_tile_right {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end; /* align buttons to the right */
+  padding: 1rem;
+  background-color: #fafafa;
+  border-left: 1px solid #eee;
+  min-width: 140px; /* Adjust as needed for comfortable button sizing */
+}
+
+/* Remove underline from anchor tags on the right side */
+.upload_section_tile_right a {
+  text-decoration: none !important;
+}
+
+/* 
     View Button Styles 
     (can keep the original WP blue or change to your preference)
   */
-  .upload_section_view_btn {
-    display: inline-block;
-    width: 120px;
-    margin: 0.25rem 0;
-    padding: 0.5rem 0.75rem;
-    background-color: #0073aa;  
-    color: #ffffff;
-    font-weight: 600;
-    text-align: center;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-  }
-  
-  .upload_section_view_btn:hover {
-    background-color: #005f8c; /* Darken on hover */
-  }
-  
-  /* 
+.upload_section_view_btn {
+  display: inline-block;
+  width: 120px;
+  margin: 0.25rem 0;
+  padding: 0.5rem 0.75rem;
+  background-color: #0073aa;
+  color: #ffffff;
+  font-weight: 600;
+  text-align: center;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.upload_section_view_btn:hover {
+  background-color: #005f8c; /* Darken on hover */
+}
+
+/* 
     Download Button Styles 
     - Distinct color, white text, no underline 
   */
-  .upload_section_download_btn {
-    display: inline-block;
-    width: 120px;
-    margin: 0.25rem 0;
-    padding: 0.5rem 0.75rem;
-    background-color: #cc4b4b; /* Example distinct color for "Download" */
-    color: #ffffff;           /* White text */
-    font-weight: 600;
-    text-align: center;
-    border-radius: 4px;
-    border: none;             /* remove default anchor border */
-    cursor: pointer;
-    text-decoration: none;    /* no underline */
-    transition: background-color 0.2s ease;
-  }
-  
-  .upload_section_download_btn:hover,
-  .upload_section_download_btn:focus,
-  .upload_section_download_btn:active {
-    background-color: #a03d3d; /* Darken on hover */
-    color: #ffffff;           /* Keep text white */
-    text-decoration: none;    /* ensure no underline on hover */
-  }
-  
-  /*****************************************************
+.upload_section_download_btn {
+  display: inline-block;
+  width: 120px;
+  margin: 0.25rem 0;
+  padding: 0.5rem 0.75rem;
+  background: linear-gradient(
+    45deg,
+    #4caf50,
+    #81c784
+  ); /* Example distinct color for "Download" */
+  color: #ffffff; /* White text */
+  font-weight: 600;
+  text-align: center;
+  border-radius: 4px;
+  border: none; /* remove default anchor border */
+  cursor: pointer;
+  text-decoration: none; /* no underline */
+  transition: background-color 0.2s ease;
+}
+
+.upload_section_download_btn:hover,
+.upload_section_download_btn:focus,
+.upload_section_download_btn:active {
+  background: linear-gradient(45deg, #4caf50, #6faf72);
+  color: #ffffff; /* Keep text white */
+  text-drgb(63, 138, 65)on: none; /* ensure no underline on hover */
+}
+
+/*****************************************************
    * Pagination Controls
    *****************************************************/
-  #pagination-controls {
-    display: flex;
-    justify-content: center;
-    margin: 2rem 0 1rem; /* Increased top margin to 2rem */
-  }
-  
-  .pagination-controls .page-button {
-    display: inline-block;
-    margin: 0 0.2rem;
-    padding: 0.4rem 0.8rem;
-    background-color: #e7e7e7;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    color: #333;
-    transition: background-color 0.2s ease;
-    text-decoration: none; /* remove underline if these are anchors */
-  }
-  
-  .pagination-controls .page-button:hover {
-    background-color: #d9d9d9;
-  }
-  
-  .pagination-controls .page-button.active-page {
-    background-color: #0073aa;
-    color: #ffffff;
-    border-color: #005f8c;
-  }
-  
-  /*****************************************************
+#pagination-controls {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0 1rem; /* Increased top margin to 2rem */
+}
+
+.pagination-controls .page-button {
+  display: inline-block;
+  margin: 0 0.2rem;
+  padding: 0.4rem 0.8rem;
+  background-color: #e7e7e7;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #333;
+  transition: background-color 0.2s ease;
+  text-decoration: none; /* remove underline if these are anchors */
+}
+
+.pagination-controls .page-button:hover {
+  background-color: #d9d9d9;
+}
+
+.pagination-controls .page-button.active-page {
+  background-color: #0073aa;
+  color: #ffffff;
+  border-color: #005f8c;
+}
+
+/*****************************************************
    * Popup (Modal) Styles
    *****************************************************/
-  .upload_section_image_popup_overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 9999; /* above other elements */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  /* Popup content wrapper */
-  .upload_section_popup_content {
-    position: relative;
-    background-color: #ffffff;
-    padding: 1rem;
-    border-radius: 8px;
-    max-width: 90%;
-    max-height: 90%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .upload_section_popup_image {
-    max-width: 100%;
-    max-height: 80vh;
-    object-fit: contain;
-    border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  }
-  
-  /* Close button */
-  .upload_section_close_popup {
-    position: absolute;
-    top: 0.5rem;
-    right: 1rem;
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: #333;
-    cursor: pointer;
-    transition: color 0.2s ease;
-  }
-  
-  .upload_section_close_popup:hover {
-    color: #000;
-  }
-  
-  /*****************************************************
+.upload_section_image_popup_overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 9999; /* above other elements */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Popup content wrapper */
+.upload_section_popup_content {
+  position: relative;
+  background-color: #ffffff;
+  padding: 1rem;
+  border-radius: 8px;
+  max-width: 90%;
+  max-height: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.upload_section_popup_image {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Close button */
+.upload_section_close_popup {
+  position: absolute;
+  top: 0.5rem;
+  right: 1rem;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #333;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.upload_section_close_popup:hover {
+  color: #000;
+}
+
+/*****************************************************
    * Responsive Styles
    *****************************************************/
-  
-  /* 
+
+/* 
     On screens below ~768px, switch to single-column grid 
     so each tile takes the full width.
   */
-  @media only screen and (max-width: 768px) {
-    #upload_section_media_tiles_container {
-      grid-template-columns: 1fr; /* single column */
-      gap: 1rem;
-      padding: 0 0.5rem;
-    }
-  
-    .upload_section_media_tile {
-      flex-direction: column;
-    }
-  
-    /* Buttons on the right become a horizontal row at the bottom */
-    .upload_section_tile_right {
-      flex-direction: row;
-      align-items: center;
-      justify-content: flex-end;
-      border-left: none;
-      border-top: 1px solid #eee;
-      min-width: auto;
-      padding: 0.75rem;
-    }
-  
-    .upload_section_view_btn,
-    .upload_section_download_btn {
-      width: 100px; /* narrower buttons for smaller screens */
-      margin: 0.25rem;
-    }
-  
-    /* Pagination buttons */
-    .pagination-controls .page-button {
-      margin: 0 0.15rem;
-      padding: 0.3rem 0.6rem;
-      font-size: 0.85rem;
-    }
-  
-    /* Close button in popup smaller */
-    .upload_section_close_popup {
-      font-size: 1.6rem;
-    }
+@media only screen and (max-width: 768px) {
+  #upload_section_media_tiles_container {
+    grid-template-columns: 1fr; /* single column */
+    gap: 1rem;
+    padding: 0 0.5rem;
   }
-  
-  /* 
+
+  .upload_section_media_tile {
+    flex-direction: column;
+  }
+
+  /* Buttons on the right become a horizontal row at the bottom */
+  .upload_section_tile_right {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    border-left: none;
+    border-top: 1px solid #eee;
+    min-width: auto;
+    padding: 0.75rem;
+  }
+
+  .upload_section_view_btn,
+  .upload_section_download_btn {
+    width: 100px; /* narrower buttons for smaller screens */
+    margin: 0.25rem;
+  }
+
+  /* Pagination buttons */
+  .pagination-controls .page-button {
+    margin: 0 0.15rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.85rem;
+  }
+
+  /* Close button in popup smaller */
+  .upload_section_close_popup {
+    font-size: 1.6rem;
+  }
+}
+
+/* 
     On screens below ~480px, further tighten spacing 
     and reduce text/button sizes.
   */
-  @media only screen and (max-width: 480px) {
-    .upload_section_tile_left {
-      padding: 0.75rem;
-    }
-  
-    .upload_section_media_title {
-      font-size: 1rem;
-    }
-    .upload_section_media_description {
-      font-size: 0.9rem;
-    }
-  
-    .upload_section_tile_right {
-      padding: 0.75rem;
-    }
-  
-    .upload_section_view_btn,
-    .upload_section_download_btn {
-      width: 90px;
-    }
-  
-    /* Popup content */
-    .upload_section_popup_content {
-      padding: 0.75rem;
-    }
-  
-    .upload_section_close_popup {
-      font-size: 1.4rem;
-    }
+@media only screen and (max-width: 480px) {
+  .upload_section_tile_left {
+    padding: 0.75rem;
   }
-  
+
+  .upload_section_media_title {
+    font-size: 1rem;
+  }
+  .upload_section_media_description {
+    font-size: 0.9rem;
+  }
+
+  .upload_section_tile_right {
+    padding: 0.75rem;
+  }
+
+  .upload_section_view_btn,
+  .upload_section_download_btn {
+    width: 90px;
+  }
+
+  /* Popup content */
+  .upload_section_popup_content {
+    padding: 0.75rem;
+  }
+
+  .upload_section_close_popup {
+    font-size: 1.4rem;
+  }
+}

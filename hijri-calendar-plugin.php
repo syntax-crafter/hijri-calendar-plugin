@@ -132,7 +132,7 @@ function hijri_calendar_ajax_get_uploads_paged()
     // Determine which page is requested
     $page = isset($_POST['page']) ? absint($_POST['page']) : 1;
     // Set how many items per page
-    $items_per_page = 5;
+    $items_per_page = 12;
     // Calculate offset
     $offset = ($page - 1) * $items_per_page;
 
