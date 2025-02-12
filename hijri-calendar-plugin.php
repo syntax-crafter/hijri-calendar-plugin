@@ -8,6 +8,7 @@ Email: ikushan23261uni@gmail.com
 License: GPL2
 
 Changelog:
+2.0v - major update bug fixed and improve navigations and introduced end dates for the plugin.
 1.9 - Added Role Based Access
 1.8 - removed the pdf generation and added client requested mobile view improvements.
 1.7 - Added support for media downloads.
