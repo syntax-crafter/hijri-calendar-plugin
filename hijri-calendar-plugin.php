@@ -43,6 +43,7 @@ function hijri_calendar_create_table()
         id bigint(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
         gregorian_month_year varchar(7) NOT NULL,
         start_date date NOT NULL,
+        end_date date NULL,
         custom_url varchar(255) DEFAULT NULL,
         file_name varchar(255) DEFAULT NULL,
         file_size bigint(20) DEFAULT NULL,
