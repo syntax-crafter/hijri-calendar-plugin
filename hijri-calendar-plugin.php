@@ -1,10 +1,20 @@
 <?php
 /*
 Plugin Name: Hijri Calendar Plugin
-Description: A plugin to generate Hijri calendar with downloadable PDF and display uploaded media.
-Version: 1.7
-Author: Ushan Ikshana
+Description: A comprehensive plugin to generate a Hijri calendar, allowing users to display uploaded media seamlessly. Perfect for Islamic organizations and individuals looking to integrate the Hijri calendar into their WordPress sites.
+Version: 1.9
+Author: Ushan Ikshana - HDR_LABS
+Email: ikushan23261uni@gmail.com
+License: GPL2
+
+Changelog:
+1.9 - Added Role Based Access
+1.8 - removed the pdf generation and added client requested mobile view improvements.
+1.7 - Added support for media downloads.
+1.6 - Fixed bugs related to date calculations.
+1.5 - ....
 */
+
 
 // Ensure the Composer autoload file exists before including it
 if (file_exists(__DIR__ . '/vendor/autoload.php')) {
@@ -45,6 +55,25 @@ function hijri_calendar_create_table()
     dbDelta($sql);
 }
 
+/**
+ * Checks if the current user has access to the Hijri Calendar plugin.
+ *
+ * @return bool True if the user is logged in and is an Administrator, Editor, or Author.
+ */
+function hijri_calendar_has_access() {
+    if ( is_user_logged_in() ) {
+        $user = wp_get_current_user();
+        // Allowed roles: administrator, editor, author.
+        $allowed_roles = array('administrator', 'editor', 'author');
+
+        // Check if the current user has any of the allowed roles.
+        if ( array_intersect( $allowed_roles, $user->roles ) ) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // Register shortcode to display the calendar with navigation buttons
 function hijri_calendar_shortcode()
 {
@@ -81,7 +110,6 @@ function hijri_calendar_shortcode()
         <div class="button-container">
             <button class="previous-btn" id="previous-btn"><i class="fas fa-arrow-left"></i> Previous</button>
             <button class="next-btn" id="next-btn">Next <i class="fas fa-arrow-right"></i></button>
-            <button id="download-pdf" class="download-btn">Download</button>
         </div>
     </div>';
 }

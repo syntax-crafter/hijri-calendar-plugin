@@ -184,6 +184,7 @@ body {
   box-shadow: 0 0 15px rgba(255, 88, 72, 0.7); /* Glow effect on hover */
 }
 
+<<<<<<< HEAD
 /* Download Button */
 .download-btn {
   width: fit-content;
@@ -211,6 +212,9 @@ body {
   ); /* Darker gradient on hover */
   box-shadow: 0 0 15px rgba(72, 255, 88, 0.7); /* Glow effect on hover */
 }
+=======
+
+>>>>>>> 0d26edc (initial commit)
 
 #arabic-weekday span {
     font-size: 0.8em;
@@ -255,11 +259,14 @@ body {
     white-space: nowrap;
   }
 
+<<<<<<< HEAD
   /* Hide Gregorian month abbreviation in mobile view */
   .gregorian-month {
     display: none;
   }
 
+=======
+>>>>>>> 0d26edc (initial commit)
   /* Adjust buttons for mobile: next/previous in one row, download in another */
   .button-container {
     flex-direction: column; /* Stack buttons vertically */
@@ -272,15 +279,22 @@ body {
     margin-bottom: 10px; /* Space between previous/next buttons */
   }
 
+<<<<<<< HEAD
   .button-container .download-btn {
     width: 100%; /* Make download button full width */
   }
 
+=======
+>>>>>>> 0d26edc (initial commit)
   .day:hover .tooltip {
     display: none;
   }
 
+<<<<<<< HEAD
   #arabic-weekday{
     display: none;
   }
+=======
+
+>>>>>>> 0d26edc (initial commit)
 }

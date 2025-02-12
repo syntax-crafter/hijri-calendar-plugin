@@ -21,7 +21,7 @@ function hijri_calendar_admin_menu()
     add_menu_page(
         'Hijri Calendar',            // Page title
         'Hijri Calendar',            // Menu title
-        'manage_options',            // Capability required to view
+        'edit_posts',            // Capability required to view
         'hijri-calendar',            // Slug for the menu page
         'hijri_calendar_admin_page', // Callback function to render the page
         'dashicons-calendar',        // Icon for the menu
@@ -33,6 +33,11 @@ add_action('admin_menu', 'hijri_calendar_admin_menu');
 // Display the Admin Page for Hijri Calendar
 function hijri_calendar_admin_page()
 {
+    // Check if the current user has one of the allowed roles.
+    if (! current_user_can('edit_posts')) { // Or use a custom check if needed.
+        wp_die(__('You do not have sufficient permissions to access this page.', 'hijri-calendar'));
+    }
+
     global $wpdb;
     $table_name = $wpdb->prefix . 'hijri_start_dates';
 
