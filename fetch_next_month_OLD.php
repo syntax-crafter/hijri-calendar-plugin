@@ -17,6 +17,7 @@ global $wpdb;
 // Get the next month and year
 $next_month_year = date('Y-m', strtotime('+1 month', strtotime($current_month_year . '-01')));
 
+
 // Query the database for the next month's start date
 $table_name = $wpdb->prefix . 'hijri_start_dates';
 $next_month_data = $wpdb->get_row($wpdb->prepare("

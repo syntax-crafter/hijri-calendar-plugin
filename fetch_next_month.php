@@ -18,10 +18,11 @@ global $wpdb;
 $table_name = $wpdb->prefix . 'hijri_start_dates';
 
 // Check if there are multiple start dates for the current month
-$start_dates_for_current_month = $wpdb->get_results($wpdb->prepare("
+$start_dates_for_current_month = $wpdb->get_results($wpdb->prepare(
+    "
     SELECT * FROM $table_name 
     WHERE gregorian_month_year = %s 
-    ORDER BY start_date ASC", 
+    ORDER BY start_date ASC",
     $current_month_year
 ));
 
@@ -39,7 +40,7 @@ if (count($start_dates_for_current_month) > 1) {
             break;
         }
     }
-    
+
     // If current start date is the last (highest) in the month
     if ($current_start_date_index === count($start_dates_for_current_month) - 1) {
         // Move to next month's earliest start date
@@ -47,7 +48,7 @@ if (count($start_dates_for_current_month) > 1) {
     } elseif ($current_start_date_index >= 0 && $current_start_date_index < count($start_dates_for_current_month) - 1) {
         // Use the next start date in the same month
         $next_start_date_entry = $start_dates_for_current_month[$current_start_date_index + 1];
-        
+
         echo json_encode([
             'success' => true,
             'gregorian_month_year' => $current_month_year,
@@ -66,33 +67,73 @@ if (count($start_dates_for_current_month) > 1) {
 if ($is_highest_start_date) {
     // Get the next month and year
     $next_month_year = date('Y-m', strtotime('+1 month', strtotime($current_month_year . '-01')));
+    $super_next_month_year = date('Y-m', strtotime('+2 month', strtotime($current_month_year . '-01')));
 
-    // Query for the next month's earliest start date
-    $next_month_data = $wpdb->get_row($wpdb->prepare("
+    // Query for all start dates in the next month, ordered by start date
+    $next_month_data = $wpdb->get_results($wpdb->prepare(
+        "
         SELECT * FROM $table_name 
         WHERE gregorian_month_year = %s 
-        ORDER BY start_date ASC 
-        LIMIT 1", 
+        ORDER BY start_date ASC",
         $next_month_year
     ));
 
     // Check if next month data exists
-    if ($next_month_data) {
+    if (!empty($next_month_data)) {
+        // Select the first start date by default
+        $first_start_date = $next_month_data[0];
+
         echo json_encode([
             'success' => true,
-            'gregorian_month_year' => $next_month_data->gregorian_month_year,
-            'start_date' => $next_month_data->start_date,
-            'end_date' => $next_month_data->end_date,
-            'is_last_start_date' => true
+            'gregorian_month_year' => $next_month_year,
+            'start_date' => $first_start_date->start_date,
+            'end_date' => $first_start_date->end_date,
+            'is_last_start_date' => true,
+            'all_start_dates' => array_map(function ($entry) {
+                return [
+                    'start_date' => $entry->start_date,
+                    'end_date' => $entry->end_date
+                ];
+            }, $next_month_data)
         ]);
     } else {
-        // No next month found
+        // Query for all start dates in the next month, ordered by start date
+        $super_next_month_data = $wpdb->get_results($wpdb->prepare(
+            "
+            SELECT * FROM $table_name 
+            WHERE gregorian_month_year = %s 
+            ORDER BY start_date ASC",
+            $super_next_month_year
+        ));
+
+        if(!empty($super_next_month_data)){
+            // Select the first start date by default
+            $first_start_date = $super_next_month_data[0];
+
+            echo json_encode([
+                'success' => true,
+                'gregorian_month_year' => $super_next_month_year,
+                'start_date' => $first_start_date->start_date,
+                'end_date' => $first_start_date->end_date,
+                'is_last_start_date' => true,
+                'all_start_dates' => array_map(function ($entry) {
+                    return [
+                        'start_date' => $entry->start_date,
+                        'end_date' => $entry->end_date
+                    ];
+                }, $super_next_month_data)
+            ]);
+        }else{
+            // No next month found
         echo json_encode([
             'success' => false,
             'message' => 'No further calendar available.'
         ]);
+        }
+
+
+        
     }
 }
 
 exit;
-?>

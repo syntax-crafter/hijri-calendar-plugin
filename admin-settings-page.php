@@ -115,7 +115,13 @@ function hijri_calendar_admin_page()
                 "SELECT start_date FROM $table_name ORDER BY start_date DESC LIMIT 1"
             );
 
+            $latest_end_date = $wpdb->get_var(
+                "SELECT end_date FROM $table_name ORDER BY start_date DESC LIMIT 1"
+            );
+
             update_option('hijri_calendar_start_date', $latest_start_date);
+            update_option('hijri_calendar_end_date', $latest_end_date);
+            
 
             echo '<div class="updated"><p>Hijri Calendar entry saved successfully!</p></div>';
         }

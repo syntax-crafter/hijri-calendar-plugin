@@ -13,10 +13,11 @@ global $wpdb;
 $table_name = $wpdb->prefix . 'hijri_start_dates';
 
 // Check if there are multiple start dates for the current month
-$start_dates_for_current_month = $wpdb->get_results($wpdb->prepare("
+$start_dates_for_current_month = $wpdb->get_results($wpdb->prepare(
+    "
     SELECT * FROM $table_name 
     WHERE gregorian_month_year = %s 
-    ORDER BY start_date ASC", 
+    ORDER BY start_date ASC",
     $current_month_year
 ));
 
@@ -34,7 +35,7 @@ if (count($start_dates_for_current_month) > 1) {
             break;
         }
     }
-    
+
     // If current start date is the first (lowest) in the month
     if ($current_start_date_index === 0) {
         // Move to previous month's latest start date
@@ -42,7 +43,7 @@ if (count($start_dates_for_current_month) > 1) {
     } elseif ($current_start_date_index > 0) {
         // Use the previous start date in the same month
         $previous_start_date_entry = $start_dates_for_current_month[$current_start_date_index - 1];
-        
+
         echo json_encode([
             'success' => true,
             'gregorian_month_year' => $current_month_year,
@@ -61,6 +62,7 @@ if (count($start_dates_for_current_month) > 1) {
 if ($is_lowest_start_date) {
     // Get the previous month and year
     $previous_month_year = date('Y-m', strtotime('-1 month', strtotime($current_month_year . '-01')));
+    $super_previous_month_year = date('Y-m', strtotime('-2 month', strtotime($current_month_year . '-01')));
 
     // Check if this is the first month by finding the earliest entry in the database
     $first_month_data = $wpdb->get_var("
@@ -71,11 +73,12 @@ if ($is_lowest_start_date) {
     $is_first_month = ($current_month_year == $first_month_data);
 
     // Query for the previous month's latest start date
-    $previous_month_data = $wpdb->get_row($wpdb->prepare("
+    $previous_month_data = $wpdb->get_row($wpdb->prepare(
+        "
         SELECT * FROM $table_name 
         WHERE gregorian_month_year = %s 
         ORDER BY start_date DESC 
-        LIMIT 1", 
+        LIMIT 1",
         $previous_month_year
     ));
 
@@ -89,12 +92,32 @@ if ($is_lowest_start_date) {
             'is_first_month' => $is_first_month
         ]);
     } else {
-        // No previous month found
-        echo json_encode([
-            'success' => false,
-            'message' => 'Calendar history ends here.',
-            'is_first_month' => $is_first_month
-        ]);
+        // Query for the super previous month's latest start date
+        $super_previous_month_data = $wpdb->get_row($wpdb->prepare(
+            "
+            SELECT * FROM $table_name 
+            WHERE gregorian_month_year = %s 
+            ORDER BY start_date DESC 
+            LIMIT 1",
+            $super_previous_month_year
+        ));
+
+        if ($super_previous_month_data) {
+            echo json_encode([
+                'success' => true,
+                'gregorian_month_year' => $super_previous_month_data->gregorian_month_year,
+                'start_date' => $super_previous_month_data->start_date,
+                'end_date' => $super_previous_month_data->end_date,
+                'is_first_month' => $is_first_month
+            ]);
+        } else {
+            // No previous month found
+            echo json_encode([
+                'success' => false,
+                'message' => 'history end here...',
+                'is_first_month' => $is_first_month
+            ]);
+        }
     }
 }
 

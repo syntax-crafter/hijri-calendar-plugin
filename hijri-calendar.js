@@ -211,6 +211,8 @@ function generateHijriCalendar(startGregorianDate, endGregorianDate) {
           } else {
             // No more previous data, hide the previous button
             $("#previous-btn").hide();
+            console.log(response.message);
+            console.log('Magic Happens Here');
           }
         },
         error: function (xhr, status, error) {
@@ -251,6 +253,7 @@ function generateHijriCalendar(startGregorianDate, endGregorianDate) {
           } else {
             // No more next data
             $("#next-btn").hide();
+            console.log(response.message);
           }
         },
         error: function (xhr, status, error) {

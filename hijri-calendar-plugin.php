@@ -80,6 +80,7 @@ function hijri_calendar_shortcode()
 {
     // Fetch the start date from the plugin options
     $start_date = get_option('hijri_calendar_start_date', '2024-08-07'); // Default to a specific date if not set
+    $end_date = get_option('hijri_calendar_end_date', '2024-09-05');
 
     // Enqueue Font Awesome for icons
     wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css');
@@ -92,6 +93,7 @@ function hijri_calendar_shortcode()
     // Pass the start date, PDF generation URL, and Previous/Next Month URLs to JavaScript
     wp_localize_script('hijri-calendar-js', 'hijriCalendarData', array(
         'startDate' => $start_date,  // Pass the start date from plugin options
+        'endDate' => $end_date,
         'pdfGenerationUrl' => plugins_url('generate-pdf.php', __FILE__), // URL to generate the PDF
         'previousMonthUrl' => plugins_url('fetch_previous_month.php', __FILE__), // URL to fetch previous month
         'nextMonthUrl' => plugins_url('fetch_next_month.php', __FILE__), // URL to fetch next month
