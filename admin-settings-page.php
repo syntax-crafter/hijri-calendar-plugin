@@ -55,20 +55,104 @@ function hijri_calendar_admin_page()
     if (isset($_POST['update_hijri_calendar'])) {
         $entry_id = intval($_POST['entry_id']);
         $end_date = sanitize_text_field($_POST['end_date']);
+        $description = sanitize_textarea_field($_POST['description']);
         $media_id = isset($_POST['media_id']) ? intval($_POST['media_id']) : 0;
 
-        // Get the media URL
-        $media_url = $media_id ? wp_get_attachment_url($media_id) : '';
+        // Get the current entry to check existing image URL
+        $current_entry = $wpdb->get_row($wpdb->prepare(
+            "SELECT custom_url FROM $table_name WHERE id = %d",
+            $entry_id
+        ));
+
+        // Only update media URL if a new media is selected
+        $media_url = $media_id ? wp_get_attachment_url($media_id) : $current_entry->custom_url;
 
         // Update the entry
         $wpdb->update(
             $table_name,
             [
                 'end_date' => $end_date,
+                'description' => $description,
                 'custom_url' => $media_url
             ],
             ['id' => $entry_id]
         );
+
+        // Calculate next start date (end_date + 1 day)
+        $timezone = new DateTimeZone('Asia/Colombo');
+        if ($end_date) {
+            $next_start_date = new DateTime($end_date, $timezone);
+            $next_start_date->modify('+1 day');
+
+            // Format dates
+            $new_start = $next_start_date->format('Y-m-d');
+            $new_gregorian_month_year = $next_start_date->format('Y-m');
+
+            // Check if next start date already exists
+            $existing = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $table_name WHERE start_date = %s",
+                $new_start
+            ));
+
+            // Create new entry if it doesn't exist
+            if (!$existing) {
+                $wpdb->insert(
+                    $table_name,
+                    [
+                        'gregorian_month_year' => $new_gregorian_month_year,
+                        'start_date' => $new_start,
+                        'end_date' => '0000-00-00', // Default empty date
+                        'description' => 'Automatically generated entry',
+                        'custom_url' => '',
+                        'upload_date' => current_time('mysql')
+                    ]
+                );
+            }
+        }
+
+        $current_date = new DateTime('now', $timezone);
+        $current_date_str = $current_date->format('Y-m-d');
+
+        // First, get the start_date for the current period
+        $current_period = $wpdb->get_row($wpdb->prepare("
+                SELECT start_date, end_date 
+                FROM $table_name 
+                WHERE start_date <= '%s' AND end_date >= '%s'
+                ORDER BY start_date DESC 
+                LIMIT 1
+            ", $current_date_str));
+
+        if ($current_period) {
+            // Update the WordPress options with the current period's dates
+            update_option('hijri_calendar_start_date', $current_period->start_date);
+            update_option('hijri_calendar_end_date', $current_period->end_date);
+        } else {
+            // First, get the start_date for the current period withot end date
+            $current_period_winthout_end = $wpdb->get_row($wpdb->prepare("
+                    SELECT start_date, end_date 
+                    FROM $table_name 
+                    WHERE start_date <= '%s'
+                    ORDER BY start_date DESC 
+                    LIMIT 1
+                ", $current_date_str));
+
+            if ($current_period_winthout_end) {
+                update_option('hijri_calendar_start_date', $current_period_winthout_end->start_date);
+                update_option('hijri_calendar_end_date', $current_period_winthout_end->end_date);
+            } else {
+                // Get the latest start_date from the database after deletion
+                $latest_start_date = $wpdb->get_var(
+                    "SELECT start_date FROM $table_name ORDER BY start_date DESC LIMIT 1"
+                );
+
+                $latest_end_date = $wpdb->get_var(
+                    "SELECT end_date FROM $table_name WHERE start_date = $latest_start_date LIMIT 1"
+                );
+
+                update_option('hijri_calendar_start_date', $latest_start_date);
+                update_option('hijri_calendar_end_date', $latest_end_date);
+            }
+        }
 
         echo '<div class="updated"><p>Hijri Calendar entry updated successfully!</p></div>';
     }
@@ -123,20 +207,20 @@ function hijri_calendar_admin_page()
                 LIMIT 1
             ", $current_date_str));
 
-            // First, get the start_date for the current period withot end date
-            $current_period_winthout_end = $wpdb->get_row($wpdb->prepare("
-                SELECT start_date, end_date 
-                FROM $table_name 
-                WHERE start_date <= '%s'
-                ORDER BY start_date DESC 
-                LIMIT 1
-            ", $current_date_str));
-
             if ($current_period) {
                 // Update the WordPress options with the current period's dates
                 update_option('hijri_calendar_start_date', $current_period->start_date);
                 update_option('hijri_calendar_end_date', $current_period->end_date);
             } else {
+                // First, get the start_date for the current period withot end date
+                $current_period_winthout_end = $wpdb->get_row($wpdb->prepare("
+                    SELECT start_date, end_date 
+                    FROM $table_name 
+                    WHERE start_date <= '%s'
+                    ORDER BY start_date DESC 
+                    LIMIT 1
+                ", $current_date_str));
+
                 if ($current_period_winthout_end) {
                     update_option('hijri_calendar_start_date', $current_period_winthout_end->start_date);
                     update_option('hijri_calendar_end_date', $current_period_winthout_end->end_date);
@@ -187,20 +271,20 @@ function hijri_calendar_admin_page()
             LIMIT 1
         ", $current_date_str));
 
-        // First, get the start_date for the current period withot end date
-        $current_period_winthout_end = $wpdb->get_row($wpdb->prepare("
-            SELECT start_date, end_date 
-            FROM $table_name 
-            WHERE start_date <= '%s'
-            ORDER BY start_date DESC 
-            LIMIT 1
-        ", $current_date_str));
-
         if ($current_period) {
             // Update the WordPress options with the current period's dates
             update_option('hijri_calendar_start_date', $current_period->start_date);
             update_option('hijri_calendar_end_date', $current_period->end_date);
         } else {
+            // First, get the start_date for the current period withot end date
+            $current_period_winthout_end = $wpdb->get_row($wpdb->prepare("
+                SELECT start_date, end_date 
+                FROM $table_name 
+                WHERE start_date <= '%s'
+                ORDER BY start_date DESC 
+                LIMIT 1
+            ", $current_date_str));
+
             if ($current_period_winthout_end) {
                 update_option('hijri_calendar_start_date', $current_period_winthout_end->start_date);
                 update_option('hijri_calendar_end_date', $current_period_winthout_end->end_date);
@@ -253,10 +337,9 @@ function hijri_calendar_admin_page()
                 <tr>
                     <th><label for="description">Description</label></th>
                     <td>
-                        <textarea name="description" id="description" class="regular-text"
-                            <?php echo $edit_entry ? 'disabled' : 'required'; ?>><?php
-                                                                                    echo $edit_entry ? esc_textarea($edit_entry->description) : '';
-                                                                                    ?></textarea>
+                        <textarea name="description" id="description" class="regular-text"><?php
+                                                                                            echo $edit_entry ? esc_textarea($edit_entry->description) : '';
+                                                                                            ?></textarea>
                     </td>
                 </tr>
                 <tr>

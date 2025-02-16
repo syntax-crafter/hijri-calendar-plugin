@@ -34,7 +34,6 @@ jQuery(document).ready(function($) {
     if (isEditMode) {
         // Disable non-editable fields
         $('#start_date').prop('disabled', true);
-        $('#description').prop('disabled', true);
 
         // Add cancel button functionality
         $('.button-cancel').on('click', function(e) {
