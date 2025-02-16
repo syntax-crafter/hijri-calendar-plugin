@@ -23,32 +23,39 @@ function generateHijriCalendar(startGregorianDate, endGregorianDate) {
   const weekdaysRow = document.getElementById("weekdays");
   const daysRow = document.getElementById("days");
 
-  // Check if #weekdays and #days elements exist, create them if not
   if (!weekdaysRow || !daysRow) {
     console.error(
       "Error: Required calendar elements (#weekdays or #days) are missing."
     );
-    return; // Stop execution if elements are missing
+    return;
   }
 
-  // Clear previous content
   weekdaysRow.innerHTML = "";
   daysRow.innerHTML = "";
 
-  // Get today's date
   const today = new Date();
   const todayDay = today.getDate();
   const todayMonth = today.getMonth();
   const todayYear = today.getFullYear();
 
-  // Get the initial Gregorian date
   const startDate = new Date(startGregorianDate);
   const endDate = new Date(endGregorianDate);
+
+  // Create formatters with specific options
   const hijriFormatter = new Intl.DateTimeFormat("en-US-u-ca-islamic", {
     year: "numeric",
     month: "long",
-    day: "numeric",
   });
+
+  // Create a separate formatter for the tooltip with 2-day adjustment
+  const hijriTooltipFormatter = new Intl.DateTimeFormat("en-US-u-ca-islamic", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    calendar: "islamic",
+    numberingSystem: "latn",
+  });
+
   const gregorianFormatter = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
     year: "numeric",
@@ -59,24 +66,19 @@ function generateHijriCalendar(startGregorianDate, endGregorianDate) {
     month: "short",
   });
 
-  // Hijri and Gregorian month names
   const hijriMonthName = hijriFormatter.format(startDate);
   const gregorianMonthName = gregorianFormatter.format(startDate);
 
-  // Set month names in the header
   document.getElementById(
     "hijri-month-name"
-  ).innerText = `Hijri Month: ${hijriMonthName}`;
+  ).innerText = `${hijriMonthName}`;
   document.getElementById(
     "gregorian-month-name"
   ).innerText = `Gregorian: ${gregorianMonthName}`;
 
-  // Add weekdays headers with Arabic and English names
   weekdays.forEach((day, index) => {
     const weekdayElement = document.createElement("div");
     weekdayElement.classList.add("weekday");
-
-    // Add separate blocks for English and Arabic names
     weekdayElement.innerHTML = `
             <div id="english-weekday">${day}</div>
             <div id="arabic-weekday">${arabicWeekdays[index]}</div>
@@ -84,10 +86,8 @@ function generateHijriCalendar(startGregorianDate, endGregorianDate) {
     weekdaysRow.appendChild(weekdayElement);
   });
 
-  // Get the weekday of the first day in the Gregorian month
   let startWeekday = startDate.getDay();
 
-  // Add empty spaces for days before the first of the month
   for (let i = 0; i < startWeekday; i++) {
     const emptyDay = document.createElement("div");
     emptyDay.classList.add("day");
@@ -106,41 +106,38 @@ function generateHijriCalendar(startGregorianDate, endGregorianDate) {
   }
 
   if (daysToGenerate == 29 || daysToGenerate == 30) {
-    // Generate 30 days for the Hijri month
     for (let day = 1; day <= daysToGenerate; day++) {
       const currentDay = new Date(startDate);
       currentDay.setDate(startDate.getDate() + day - 1);
 
-      // Get Hijri date for the current day
+      // Adjust date for Hijri tooltip calculation
+      const adjustedDate = new Date(currentDay);
+      adjustedDate.setDate(adjustedDate.getDate() - 2); // Subtract 2 days for tooltip
+
       const hijriDate = hijriFormatter.format(currentDay);
-      const fullHijriDate = hijriFormatter.format(currentDay);
+      const adjustedHijriDate = hijriTooltipFormatter.format(adjustedDate);
 
-      // Gregorian date number and month
       const gregorianDateNumber = currentDay.getDate();
-      const gregorianMonth = gregorianMonthFormatter.format(currentDay); // Get first 3 letters of the month
+      const gregorianMonth = gregorianMonthFormatter.format(currentDay);
 
-      // Create a day element and append Hijri and Gregorian dates
       const dayElement = document.createElement("div");
       dayElement.classList.add("day");
 
-      // Check if the current day is today
       if (
         currentDay.getDate() === todayDay &&
         currentDay.getMonth() === todayMonth &&
         currentDay.getFullYear() === todayYear
       ) {
-        dayElement.setAttribute("id", "today"); // Add a unique ID for today's date
+        dayElement.setAttribute("id", "today");
       }
 
-      // For desktop: Display month abbreviation and day number
-      // For mobile: Only display day number (hide the month)
       dayElement.innerHTML = `
             <div class="hijri-date">${day}</div>
             <div class="gregorian-date">
                 <span class="gregorian-month">${gregorianMonth}</span> ${gregorianDateNumber}
             </div>
             <div class="tooltip">
-                <strong>Hijri:</strong> ${fullHijriDate}<br>
+                <strong>Hijri:</strong> ${adjustedHijriDate}<br>
                 <strong>Gregorian:</strong> ${gregorianMonth} ${gregorianDateNumber}
             </div>
         `;
@@ -149,12 +146,8 @@ function generateHijriCalendar(startGregorianDate, endGregorianDate) {
     }
   } else {
     for (let day = 1; day <= 30; day++) {
-      // Create a day element and append Hijri and Gregorian dates
       const dayElement = document.createElement("div");
       dayElement.classList.add("day");
-
-      // For desktop: Display month abbreviation and day number
-      // For mobile: Only display day number (hide the month)
       dayElement.innerHTML = `
             <div class="hijri-date">Invalid</div>
             <div class="gregorian-date">
@@ -165,7 +158,6 @@ function generateHijriCalendar(startGregorianDate, endGregorianDate) {
                 <strong>Gregorian:</strong> ---- ----
             </div>
         `;
-
       daysRow.appendChild(dayElement);
     }
   }
@@ -260,17 +252,20 @@ function generateHijriCalendar(startGregorianDate, endGregorianDate) {
     }
 
     // Event listener for Previous button
-    $("#previous-btn").on("click", function() {
+    $("#previous-btn").on("click", function () {
       loadPreviousMonth();
     });
 
     // Event listener for Next button
-    $("#next-btn").on("click", function() {
+    $("#next-btn").on("click", function () {
       loadNextMonth();
     });
 
     // Initial calendar generation based on start date
-    generateHijriCalendar(hijriCalendarData.startDate,hijriCalendarData.endDate);
+    generateHijriCalendar(
+      hijriCalendarData.startDate,
+      hijriCalendarData.endDate
+    );
 
     // Initial button state management
     $("#next-btn").hide(); // Initially hide the Next button (since it's the current month)
