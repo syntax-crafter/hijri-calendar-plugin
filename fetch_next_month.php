@@ -106,7 +106,7 @@ if ($is_highest_start_date) {
             $super_next_month_year
         ));
 
-        if(!empty($super_next_month_data)){
+        if (!empty($super_next_month_data)) {
             // Select the first start date by default
             $first_start_date = $super_next_month_data[0];
 
@@ -123,16 +123,13 @@ if ($is_highest_start_date) {
                     ];
                 }, $super_next_month_data)
             ]);
-        }else{
+        } else {
             // No next month found
-        echo json_encode([
-            'success' => false,
-            'message' => 'No further calendar available.'
-        ]);
+            echo json_encode([
+                'success' => false,
+                'message' => 'No further calendar available.'
+            ]);
         }
-
-
-        
     }
 }
 
