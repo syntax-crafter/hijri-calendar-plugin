@@ -56,7 +56,7 @@ function hijri_calendar_admin_page()
         $entry_id = intval($_POST['entry_id']);
         $end_date = sanitize_text_field($_POST['end_date']);
         $media_id = isset($_POST['media_id']) ? intval($_POST['media_id']) : 0;
-        
+
         // Get the media URL
         $media_url = $media_id ? wp_get_attachment_url($media_id) : '';
 
@@ -109,19 +109,51 @@ function hijri_calendar_admin_page()
                     'custom_url' => $media_url
                 ]
             );
+            // Get the current date in Colombo timezone
+            $timezone = new DateTimeZone('Asia/Colombo');
+            $current_date = new DateTime('now', $timezone);
+            $current_date_str = $current_date->format('Y-m-d');
 
-            // Get the latest start_date from the database after the insert
-            $latest_start_date = $wpdb->get_var(
-                "SELECT start_date FROM $table_name ORDER BY start_date DESC LIMIT 1"
-            );
+            // First, get the start_date for the current period
+            $current_period = $wpdb->get_row($wpdb->prepare("
+                SELECT start_date, end_date 
+                FROM $table_name 
+                WHERE start_date <= '%s' AND end_date >= '%s'
+                ORDER BY start_date DESC 
+                LIMIT 1
+            ", $current_date_str));
 
-            $latest_end_date = $wpdb->get_var(
-                "SELECT end_date FROM $table_name ORDER BY start_date DESC LIMIT 1"
-            );
+            // First, get the start_date for the current period withot end date
+            $current_period_winthout_end = $wpdb->get_row($wpdb->prepare("
+                SELECT start_date, end_date 
+                FROM $table_name 
+                WHERE start_date <= '%s'
+                ORDER BY start_date DESC 
+                LIMIT 1
+            ", $current_date_str));
 
-            update_option('hijri_calendar_start_date', $latest_start_date);
-            update_option('hijri_calendar_end_date', $latest_end_date);
-            
+            if ($current_period) {
+                // Update the WordPress options with the current period's dates
+                update_option('hijri_calendar_start_date', $current_period->start_date);
+                update_option('hijri_calendar_end_date', $current_period->end_date);
+            } else {
+                if ($current_period_winthout_end) {
+                    update_option('hijri_calendar_start_date', $current_period_winthout_end->start_date);
+                    update_option('hijri_calendar_end_date', $current_period_winthout_end->end_date);
+                } else {
+                    // Get the latest start_date from the database after deletion
+                    $latest_start_date = $wpdb->get_var(
+                        "SELECT start_date FROM $table_name ORDER BY start_date DESC LIMIT 1"
+                    );
+
+                    $latest_end_date = $wpdb->get_var(
+                        "SELECT end_date FROM $table_name WHERE start_date = $latest_start_date LIMIT 1"
+                    );
+
+                    update_option('hijri_calendar_start_date', $latest_start_date);
+                    update_option('hijri_calendar_end_date', $latest_end_date);
+                }
+            }
 
             echo '<div class="updated"><p>Hijri Calendar entry saved successfully!</p></div>';
         }
@@ -131,13 +163,62 @@ function hijri_calendar_admin_page()
     if (isset($_GET['delete_hijri_calendar_entry'])) {
         $delete_id = absint($_GET['delete_hijri_calendar_entry']);
         $wpdb->delete($table_name, ['id' => $delete_id]);
-        
+
         // Get the latest start_date from the database after deletion
         $latest_start_date = $wpdb->get_var(
             "SELECT start_date FROM $table_name ORDER BY start_date DESC LIMIT 1"
         );
 
-        update_option('hijri_calendar_start_date', $latest_start_date);
+        $latest_end_date = $wpdb->get_var(
+            "SELECT end_date FROM $table_name WHERE start_date = $latest_start_date LIMIT 1"
+        );
+
+        // Get the current date in Colombo timezone
+        $timezone = new DateTimeZone('Asia/Colombo');
+        $current_date = new DateTime('now', $timezone);
+        $current_date_str = $current_date->format('Y-m-d');
+
+        // First, get the start_date for the current period
+        $current_period = $wpdb->get_row($wpdb->prepare("
+            SELECT start_date, end_date 
+            FROM $table_name 
+            WHERE start_date <= '%s' AND end_date >= '%s'
+            ORDER BY start_date DESC 
+            LIMIT 1
+        ", $current_date_str));
+
+        // First, get the start_date for the current period withot end date
+        $current_period_winthout_end = $wpdb->get_row($wpdb->prepare("
+            SELECT start_date, end_date 
+            FROM $table_name 
+            WHERE start_date <= '%s'
+            ORDER BY start_date DESC 
+            LIMIT 1
+        ", $current_date_str));
+
+        if ($current_period) {
+            // Update the WordPress options with the current period's dates
+            update_option('hijri_calendar_start_date', $current_period->start_date);
+            update_option('hijri_calendar_end_date', $current_period->end_date);
+        } else {
+            if ($current_period_winthout_end) {
+                update_option('hijri_calendar_start_date', $current_period_winthout_end->start_date);
+                update_option('hijri_calendar_end_date', $current_period_winthout_end->end_date);
+            } else {
+                // Get the latest start_date from the database after deletion
+                $latest_start_date = $wpdb->get_var(
+                    "SELECT start_date FROM $table_name ORDER BY start_date DESC LIMIT 1"
+                );
+
+                $latest_end_date = $wpdb->get_var(
+                    "SELECT end_date FROM $table_name WHERE start_date = $latest_start_date LIMIT 1"
+                );
+
+                update_option('hijri_calendar_start_date', $latest_start_date);
+                update_option('hijri_calendar_end_date', $latest_end_date);
+            }
+        }
+
         echo '<div class="updated"><p>Hijri Calendar entry deleted successfully!</p></div>';
     }
 
@@ -152,12 +233,12 @@ function hijri_calendar_admin_page()
             <?php if ($edit_entry): ?>
                 <input type="hidden" name="entry_id" value="<?php echo esc_attr($edit_entry->id); ?>">
             <?php endif; ?>
-            
+
             <table class="form-table">
                 <tr>
                     <th><label for="start_date">Start Date (Gregorian)</label></th>
                     <td>
-                        <input type="date" name="start_date" id="start_date" class="regular-text" 
+                        <input type="date" name="start_date" id="start_date" class="regular-text"
                             value="<?php echo $edit_entry ? esc_attr($edit_entry->start_date) : ''; ?>"
                             <?php echo $edit_entry ? 'disabled' : 'required'; ?>>
                     </td>
@@ -173,9 +254,9 @@ function hijri_calendar_admin_page()
                     <th><label for="description">Description</label></th>
                     <td>
                         <textarea name="description" id="description" class="regular-text"
-                            <?php echo $edit_entry ? 'disabled' : 'required'; ?>><?php 
-                            echo $edit_entry ? esc_textarea($edit_entry->description) : ''; 
-                        ?></textarea>
+                            <?php echo $edit_entry ? 'disabled' : 'required'; ?>><?php
+                                                                                    echo $edit_entry ? esc_textarea($edit_entry->description) : '';
+                                                                                    ?></textarea>
                     </td>
                 </tr>
                 <tr>
@@ -228,7 +309,7 @@ function hijri_calendar_admin_page()
                             <a href="<?php echo esc_url(admin_url('admin.php?page=hijri-calendar&delete_hijri_calendar_entry=' . $entry->id)); ?>"
                                 onclick="return confirm('Are you sure you want to delete this entry?');"
                                 class="dashicons dashicons-trash" style="color: red; font-size: 20px; text-decoration: none;"></a>
-                            
+
                             <a href="<?php echo esc_url(admin_url('admin.php?page=hijri-calendar&edit_hijri_calendar_entry=' . $entry->id)); ?>"
                                 class="dashicons dashicons-edit" style="color: blue; font-size: 20px; text-decoration: none; margin-right: 10px;"></a>
                         </td>

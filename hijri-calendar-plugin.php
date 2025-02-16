@@ -43,8 +43,8 @@ function hijri_calendar_create_table()
     $sql = "CREATE TABLE IF NOT EXISTS $table_name (
         id bigint(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
         gregorian_month_year varchar(7) NOT NULL,
-        start_date date NOT NULL,
-        end_date date NULL,
+        start_date date NOT NULL UNIQUE,
+        end_date date NULL UNIQUE,
         custom_url varchar(255) DEFAULT NULL,
         file_name varchar(255) DEFAULT NULL,
         file_size bigint(20) DEFAULT NULL,
@@ -62,14 +62,15 @@ function hijri_calendar_create_table()
  *
  * @return bool True if the user is logged in and is an Administrator, Editor, or Author.
  */
-function hijri_calendar_has_access() {
-    if ( is_user_logged_in() ) {
+function hijri_calendar_has_access()
+{
+    if (is_user_logged_in()) {
         $user = wp_get_current_user();
         // Allowed roles: administrator, editor, author.
         $allowed_roles = array('administrator', 'editor', 'author');
 
         // Check if the current user has any of the allowed roles.
-        if ( array_intersect( $allowed_roles, $user->roles ) ) {
+        if (array_intersect($allowed_roles, $user->roles)) {
             return true;
         }
     }
@@ -79,9 +80,48 @@ function hijri_calendar_has_access() {
 // Register shortcode to display the calendar with navigation buttons
 function hijri_calendar_shortcode()
 {
-    // Fetch the start date from the plugin options
-    $start_date = get_option('hijri_calendar_start_date', '2024-08-07'); // Default to a specific date if not set
-    $end_date = get_option('hijri_calendar_end_date', '2024-09-05');
+
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'hijri_start_dates';
+
+    // Get the current date in Colombo timezone
+    $timezone = new DateTimeZone('Asia/Colombo');
+    $current_date = new DateTime('now', $timezone);
+    $current_date_str = $current_date->format('Y-m-d');
+
+    // First, get the start_date for the current period
+    $current_period = $wpdb->get_row($wpdb->prepare("
+        SELECT start_date, end_date 
+        FROM $table_name 
+        WHERE start_date <= '%s' AND end_date >= '%s'
+        ORDER BY start_date DESC 
+        LIMIT 1
+    ", $current_date_str));
+
+    if ($current_period) {
+        $start_date = $current_period->start_date;
+        $end_date = $current_period->end_date;
+    } else {
+        // First, get the start_date for the current period withot end date
+        $current_period_winthout_end = $wpdb->get_row($wpdb->prepare("
+                SELECT start_date, end_date 
+                FROM $table_name 
+                WHERE start_date <= '%s'
+                ORDER BY start_date DESC 
+                LIMIT 1
+            ", $current_date_str));
+
+        if ($current_period_winthout_end) {
+            $start_date = $current_period_winthout_end->start_date;
+            $end_date = $current_period_winthout_end->end_date;
+        } else {
+            // Fetch the start date from the plugin options
+            $start_date = get_option('hijri_calendar_start_date', '2024-08-07');
+            $end_date = get_option('hijri_calendar_end_date', '2024-09-05');
+        }
+    }
+
+    $test_start = $current_period_winthout_end->end_date;
 
     // Enqueue Font Awesome for icons
     wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css');
@@ -95,7 +135,6 @@ function hijri_calendar_shortcode()
     wp_localize_script('hijri-calendar-js', 'hijriCalendarData', array(
         'startDate' => $start_date,  // Pass the start date from plugin options
         'endDate' => $end_date,
-        'pdfGenerationUrl' => plugins_url('generate-pdf.php', __FILE__), // URL to generate the PDF
         'previousMonthUrl' => plugins_url('fetch_previous_month.php', __FILE__), // URL to fetch previous month
         'nextMonthUrl' => plugins_url('fetch_next_month.php', __FILE__), // URL to fetch next month
     ));
